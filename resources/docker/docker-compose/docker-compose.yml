@@ -6,7 +6,7 @@ services:
     ports:
       - "2181:2181"
 
-  kafka:
+  kafka: #网上找一下 怎么设置可以允许外部连接上
     container_name: kafka
     image: wurstmeister/kafka:2.12-2.2.1
     ports:
@@ -14,9 +14,10 @@ services:
     depends_on:
       - zookeeper
     expose:
-    - "9093"
+      - "9093"
     environment:
-      KAFKA_ADVERTISED_LISTENERS: INSIDE://kafka:9093,OUTSIDE://192.168.56.103:9092
+#      KAFKA_ADVERTISED_LISTENERS: INSIDE://kafka:9093,OUTSIDE://192.168.56.103:9092
+      KAFKA_ADVERTISED_LISTENERS: INSIDE://kafka:9093,OUTSIDE://192.168.0.105:9092 #宿主机的IP啊操，MacBook的话是ifconfig查看，不然idea里的程序无法访问啊
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INSIDE:PLAINTEXT,OUTSIDE:PLAINTEXT
       KAFKA_LISTENERS: INSIDE://0.0.0.0:9093,OUTSIDE://0.0.0.0:9092
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
@@ -28,12 +29,12 @@ services:
 
   hbase:
     container_name: hbase
-    hostname: docker-linux
+    hostname: IvanLeungMacBook-Pro.local #修改hostname为宿主机，可以在web上访问
     image: xinze0803/hbase
     links:
       - zookeeper
     depends_on:
-      - zookeeper 
+      - zookeeper
     logging:
       driver: "none"
     ports:
@@ -43,21 +44,23 @@ services:
       - "16000:16000"
       - "16020:16020"
       - "16030:16030"
-    command: ["/wait-for-it.sh", "zookeeper:2181", "-t", "10", "--", "/usr/bin/supervisord"]
+    command: [ "/wait-for-it.sh", "zookeeper:2181", "-t", "10", "--", "/usr/bin/supervisord" ]
     volumes:
       - /opt/recommend/hbase_ini.sql:/opt/hbase_ini.sql
 
   mysql:
-    image: mysql
+    image: mysql:5.7.16 #指定5.7版本的MySQL，因为8.0的问题太多
     command: --default-authentication-plugin=mysql_native_password
     restart: always
     container_name: mysql
     environment:
       - MYSQL_ROOT_PASSWORD=123456
       - MYSQL_ROOT_HOST=%
+    ports:
+      - 3306:3306 #指定映射端口，不然外部也无法访问啊
     volumes:
       - /opt/recommend/contact.sql:/opt/contact.sql
-      
+
   redis:
     image: redis
     container_name: redis
@@ -68,15 +71,17 @@ services:
 
   jobmanager:
     image: ${FLINK_DOCKER_IMAGE_NAME:-flink}
+    container_name: flink_jobmanager #指定一个名字吧，不然跟文章相差太远了
     expose:
       - "6123"
     ports:
-      - "8081:8081"
+      - "8081:8081" #flink web 端口
     command: jobmanager
     environment:
       - JOB_MANAGER_RPC_ADDRESS=jobmanager
   taskmanager:
     image: ${FLINK_DOCKER_IMAGE_NAME:-flink}
+    container_name: flink_taskmanager #指定一个名字吧，不然跟文章相差太远了
     expose:
       - "6121"
       - "6122"
