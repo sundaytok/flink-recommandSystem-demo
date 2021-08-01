@@ -1,6 +1,8 @@
 package scala.flink.demo.task
 
+import com.demo.map.LogMapFunction
 import org.apache.flink.api.common.serialization.SimpleStringSchema
+import org.apache.flink.streaming.api.datastream.DataStreamSource
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer
 
@@ -12,10 +14,9 @@ object LogTask {
   def main(args: Array[String]): Unit = {
     val env = StreamExecutionEnvironment.getExecutionEnvironment
     val properties = Property.getKafkaProperties("log")
-    val dataStream=env.addSource(new FlinkKafkaConsumer("con",new SimpleStringSchema,properties))
-    dataStream.map { x => x * 2 }
-
-//    env.execute("Log message receive")
+    val dataStream: DataStreamSource[String] = env.addSource(new FlinkKafkaConsumer("con", new SimpleStringSchema, properties))
+    dataStream.map(new LogMapFunction)
+    env.execute("Log message receive")
   }
 
 }
