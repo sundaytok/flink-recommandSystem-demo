@@ -30,7 +30,7 @@ object Property {
   def getKafkaProperties(groupId: String): Properties = {
     val properties = new Properties
     properties.setProperty("bootstrap.servers", getStrValue("kafka.bootstrap.servers"))
-    properties.setProperty("zookeeper.connect", getStrValue("kafka.zookeeper.connect"))
+//    properties.setProperty("zookeeper.connect", getStrValue("kafka.zookeeper.connect"))
     properties.setProperty("group.id", groupId)
 
     properties
